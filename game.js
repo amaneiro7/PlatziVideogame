@@ -19,6 +19,7 @@ function setCanvasSize() {
     canvas.setAttribute('height', canvasSize);
     elementsSize = canvasSize /10;
     
+    
     startGame();
 }
 
