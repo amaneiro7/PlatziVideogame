@@ -4,11 +4,17 @@ const btnUp = document.getElementById('up');
 const btnDown = document.getElementById('down');
 const btnLeft = document.getElementById('left');
 const btnRight = document.getElementById('right');
+const spanLives = document.querySelector('#lives')
+const spanTime = document.querySelector('#time')
 
 let canvasSize;
 let elementsSize;
 let level = 0;
 let lives = 3;
+
+let timeStart;
+let timePlayer;
+let timeInterval;
 
 const playerPosition = {
     x: '',
@@ -39,10 +45,10 @@ function setCanvasSize() {
 function renderMap() {
     game.font = `${elementsSize}px Verdana`;
     game.textAlign = 'end';
-    
+    showlives();
     const map = maps[level];
     game.clearRect(0, 0, canvasSize, canvasSize);
-    const mapRows = map.trim().split('\n'); //trim() es un metodo que remueve los espacios en blanco de los treing y lo devuelve en un nuevo `string` sin modificar el original, el .split, elimina el caracter que se le indique en el argumento
+    const mapRows = map.trim().split('\n'); //trim() es un metodo que remueve los espacios en blanco de los string y lo devuelve en un nuevo `string` sin modificar el original, el .split, elimina el caracter que se le indique en el argumento
     const mapRowsCols = mapRows.map(row => row.trim().split(''));
     game.clearRect(0, 0, canvasSize, canvasSize);  
     mapRowsCols.forEach((row, rowIndex) => {
@@ -76,7 +82,9 @@ function win () {
     game.clearRect(0, 0, canvasSize, canvasSize);
     level++;    
     if (level >= maps.length) {
-        level = 0        
+        console.log('¡¡¡¡Terminaste el juego!!!!');
+        clearInterval(timeInterval);
+        return
     }
     playerPosition.x = ''
     playerPosition.y = ''
@@ -84,11 +92,13 @@ function win () {
     return
 }
 
+
 function lose () {    
     lives--
     if (lives == 0)  {        
         level = 0
         lives = 3
+        timeStart = undefined;
     }
     playerPosition.x = ''
     playerPosition.y = ''
@@ -102,7 +112,13 @@ function renderPlayerPosition(){
     return
 }
 
-function startGame() {    
+function startGame() {   
+
+    if (!timeStart) {
+        timeStart = Date.now();
+        timeInterval = setInterval(showTime, 100);
+    }
+
     renderMap()
     renderPlayerPosition()
     playerPosition.x = playerPosition.initialX;
@@ -169,4 +185,14 @@ function moveDown() {
     }
     playerPosition.y += elementsSize;    
     movePlayer();
+}
+
+function showlives() {
+    spanLives.innerHTML = emojis["HEART"].repeat(lives)
+    return;
+}
+
+function showTime() {
+    spanTime.innerHTML = Date.now() - timeStart;
+    return
 }
