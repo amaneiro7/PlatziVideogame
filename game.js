@@ -1,9 +1,11 @@
 const canvas = document.querySelector('#game');
 const game = canvas.getContext('2d');
-const btnUp = document.getElementById('up');
-const btnDown = document.getElementById('down');
-const btnLeft = document.getElementById('left');
-const btnRight = document.getElementById('right');
+const btnStart = document.querySelector('#start')
+const btnUp = document.querySelector('#up');
+const btnDown = document.querySelector('#down');
+const btnLeft = document.querySelector('#left');
+const btnRight = document.querySelector('#right');
+const spanLevel = document.querySelector('#level');
 const spanLives = document.querySelector('#lives');
 const spanTime = document.querySelector('#time');
 const spanRecord = document.querySelector('#record');
@@ -16,7 +18,7 @@ let level = 0;
 let lives = 3;
 
 let timeStart;
-let timePlayer;
+let playerTime = 0;
 let timeInterval;
 
 const playerPosition = {
@@ -42,13 +44,41 @@ function setCanvasSize() {
     canvas.setAttribute('height', canvasSize+16);
     elementsSize = Math.floor(canvasSize /10);    
         
-    startGame();
+    standbyGame();
+    return
+}
+
+function standbyGame() {
+    level = 0;
+    lives = 3;
+    timeStart = 0
+    renderMap();
+    showRecord();
+    showLevel();
+    spanTime.innerHTML = playerTime;
+    return;
+}
+
+function startGame() {   
+
+    if (!timeStart) {
+        timeStart = Date.now();
+        timeInterval = setInterval(showTime, 100);
+        showRecord();
+    }
+
+    renderMap()
+    renderPlayerPosition()
+    playerPosition.x = playerPosition.initialX;
+    playerPosition.y = playerPosition.initialY;
+    return
 }
 
 function renderMap() {
     game.font = `${elementsSize}px Verdana`;
     game.textAlign = 'end';
     showlives();
+    showLevel();
     const map = maps[level];
     game.clearRect(0, 0, canvasSize, canvasSize);
     const mapRows = map.trim().split('\n'); //trim() es un metodo que remueve los espacios en blanco de los string y lo devuelve en un nuevo `string` sin modificar el original, el .split, elimina el caracter que se le indique en el argumento
@@ -89,30 +119,35 @@ function win () {
         
         level = 0
         clearInterval(timeInterval);
-        
-        const recordTime = localStorage.getItem('record_time');
-        const playerTime = Date.now() - timeStart;        
-        
-        if (recordTime) {            
-            if (recordTime >= playerTime) {
-                localStorage.setItem('record_time', playerTime);
-                pResult.innerHTML = ('SUPERASTE EL RECORD');                
-            } else {
-                pResult.innerHTML = ('Lo siento, no superaste el records :(');
-            }
-        } else {
-            localStorage.setItem('record_time', playerTime);
-            pResult.innerHTML = ('Primera vez? Muy bien, pero ahora trata de superar tu tiempo :)');
-        }
+        setRecord();    
         
         playerPosition.x = ''
         playerPosition.y = ''
-        // return
-    }
-        startGame()
+        standbyGame();
         return
+    }        
+    return
 }
 
+function setRecord() {
+    const recordTime = localStorage.getItem('record_time');
+    playerTime = Date.now() - timeStart;        
+    
+    if (recordTime) {            
+        if (recordTime >= playerTime) {
+            localStorage.setItem('record_time', playerTime);
+            pResult.innerHTML = ('SUPERASTE EL RECORD');
+            return             
+        } else {
+            pResult.innerHTML = ('Lo siento, no superaste el records :(');
+            return
+        }
+    } else {
+        localStorage.setItem('record_time', playerTime);
+        pResult.innerHTML = ('Primera vez? Muy bien, pero ahora trata de superar tu tiempo :)');
+        return
+    }    
+}
 
 function lose () {    
     lives--
@@ -127,35 +162,22 @@ function lose () {
     return
 }
 
-
 function renderPlayerPosition(){
     game.fillText(emojis['PLAYER'], playerPosition.initialX, playerPosition.initialY)
     return
-}
+}     
 
-function startGame() {   
-
-    if (!timeStart) {
-        timeStart = Date.now();
-        timeInterval = setInterval(showTime, 100);
-        showRecord();
+function movePlayer() {  
+    if (timeStart == 0) {
+        return;
     }
-
-    renderMap()
-    renderPlayerPosition()
-    playerPosition.x = playerPosition.initialX;
-    playerPosition.y = playerPosition.initialY;
-    return
-}
-
-        
-function movePlayer() {      
     renderMap();
     game.fillText(emojis['PLAYER'], playerPosition.x, playerPosition.y)    
-    return
+    return;
 }
-    
+
 window.addEventListener('keydown', moveByKeys)
+btnStart.addEventListener('click', startGame)
 btnUp.addEventListener('click', moveUp);
 btnLeft.addEventListener('click', moveLeft);
 btnRight.addEventListener('click', moveRight);
@@ -190,7 +212,7 @@ function moveLeft() {
     playerPosition.x -= elementsSize;
     movePlayer();
 }
-function moveRight() {
+function moveRight() {    
     if (Math.ceil(playerPosition.x) >= canvasSize) {
         movePlayer();
         console.log('Ya no puedo ir más a la derecha');
@@ -209,6 +231,10 @@ function moveDown() {
     movePlayer();
 }
 
+function showLevel() {
+    spanLevel.innerHTML = level + 1;
+    return;
+}
 
 function showlives() {
     spanLives.innerHTML = emojis["HEART"].repeat(lives)
