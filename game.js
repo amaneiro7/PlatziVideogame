@@ -4,8 +4,11 @@ const btnUp = document.getElementById('up');
 const btnDown = document.getElementById('down');
 const btnLeft = document.getElementById('left');
 const btnRight = document.getElementById('right');
-const spanLives = document.querySelector('#lives')
-const spanTime = document.querySelector('#time')
+const spanLives = document.querySelector('#lives');
+const spanTime = document.querySelector('#time');
+const spanRecord = document.querySelector('#record');
+const pResult = document.querySelector('#result');
+
 
 let canvasSize;
 let elementsSize;
@@ -83,13 +86,31 @@ function win () {
     level++;    
     if (level >= maps.length) {
         console.log('¡¡¡¡Terminaste el juego!!!!');
+        
+        level = 0
         clearInterval(timeInterval);
-        return
+        
+        const recordTime = localStorage.getItem('record_time');
+        const playerTime = Date.now() - timeStart;        
+        
+        if (recordTime) {            
+            if (recordTime >= playerTime) {
+                localStorage.setItem('record_time', playerTime);
+                pResult.innerHTML = ('SUPERASTE EL RECORD');                
+            } else {
+                pResult.innerHTML = ('Lo siento, no superaste el records :(');
+            }
+        } else {
+            localStorage.setItem('record_time', playerTime);
+            pResult.innerHTML = ('Primera vez? Muy bien, pero ahora trata de superar tu tiempo :)');
+        }
+        
+        playerPosition.x = ''
+        playerPosition.y = ''
+        // return
     }
-    playerPosition.x = ''
-    playerPosition.y = ''
-    startGame()
-    return
+        startGame()
+        return
 }
 
 
@@ -117,6 +138,7 @@ function startGame() {
     if (!timeStart) {
         timeStart = Date.now();
         timeInterval = setInterval(showTime, 100);
+        showRecord();
     }
 
     renderMap()
@@ -187,6 +209,7 @@ function moveDown() {
     movePlayer();
 }
 
+
 function showlives() {
     spanLives.innerHTML = emojis["HEART"].repeat(lives)
     return;
@@ -194,5 +217,9 @@ function showlives() {
 
 function showTime() {
     spanTime.innerHTML = Date.now() - timeStart;
+    return
+}
+function showRecord() {
+    spanRecord.innerHTML = localStorage.getItem('record_time');
     return
 }
